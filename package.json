@@ -1,0 +1,17 @@
+{
+  "name": "deepgram-transcribe-summarize",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@deepgram/sdk": "^1.3.0",
+    "axios": "^1.5.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "form-data": "^4.0.0",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^4.9.0"
+  }
+}
