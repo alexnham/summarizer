@@ -9,3 +9,7 @@ usage of server
 npm install
 
 npm run start
+
+transcribe endpoint
+
+curl -X POST -F "audio=@C:/Users/Alex/Downloads/call.mp3" http://localhost:3000/transcribe
