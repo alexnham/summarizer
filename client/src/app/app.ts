@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { FileInput } from './file-input/file-input';
+import { FileInput } from './components/file-input/file-input';
 
 @Component({
   selector: 'app-root',
