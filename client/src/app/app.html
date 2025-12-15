@@ -1,4 +1,7 @@
 <main class="main">
+  <div *ngIf="!(authService.currentUser$ | async)" class="content">
+    <app-login></app-login>
+  </div>
   <div class="content">
     <app-file-input message="TESTING"></app-file-input>
   </div>
