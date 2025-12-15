@@ -226,6 +226,7 @@ Return only JSON.
 app.post('/transcribe', upload.single('audio'), async (req, res) => {
   try {
     const audioUrl = req.body.audioUrl || null;
+    const userId = req.body.userId || null; // for future DB integration
     let deepgramResponse = null;
     if (audioUrl) {
       // Let Deepgram fetch the file directly from URL (recommended for large files)
@@ -291,6 +292,8 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
       raw_deepgram_response: deepgramResponse
     };
 
+
+    //INTEGRATE DB HERE WITH USERID
     return res.json(responsePayload);
   } catch (err) {
     console.error('Error in /transcribe', err?.response?.data || err);
