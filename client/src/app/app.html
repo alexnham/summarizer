@@ -1,10 +1,9 @@
 <main class="main">
-  <div *ngIf="!(authService.currentUser$ | async)" class="content">
+  @if(!(authService.currentUser$)) {
     <app-login></app-login>
-  </div>
-  <div class="content">
+  }
+  @else {
     <app-file-input message="TESTING"></app-file-input>
-  </div>
-</main>
+  }
 
 <router-outlet />

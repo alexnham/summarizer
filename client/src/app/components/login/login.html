@@ -2,7 +2,3 @@
       <button (click)="signInWithGoogle()">Sign in with Google</button>
       <button (click)="signInWithGithub()">Sign in with GitHub</button>
     </div>
-    <div *ngIf="authService.currentUser$ | async as user">
-      <p>Welcome, {{ user.email }}</p>
-      <button (click)="signOut()">Sign Out</button>
-    </div>
