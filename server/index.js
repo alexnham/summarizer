@@ -20,8 +20,15 @@ const axios = require('axios');
 const FormData = require('form-data');
 const { Deepgram } = require('@deepgram/sdk');
 const { OpenAI } = require('openai');
-
+const { createClient } = require('@supabase/supabase-js');
 const app = express();
+
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Use service role key for server-side
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+
 app.use(express.json());
 
 const upload = multer({ dest: 'uploads/' });
@@ -219,6 +226,42 @@ Return only JSON.
   }
 }
 
+async function saveTranscriptionResult(userId, data) {
+  // Example using Supabase
+
+
+  const { data: dbData, error } = await supabase
+    .from('transcriptions')
+    .insert([
+      { user_id: userId, result: data }
+    ]);
+
+  if (error) {
+    console.error('Error saving transcription result:', error);
+  } else {
+    console.log('Transcription result saved for user:', userId);
+  }
+};
+
+
+app.get('/getTranscriptions/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+
+
+  const { data: dbData, error } = await supabase
+    .from('transcriptions')
+    .select('*')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching transcriptions:', error);
+    res.status(500).json({ error: 'Error fetching transcriptions' });
+  } else {
+    res.json(dbData);
+  }
+});
+
 /**
  * Endpoint: transcribe
  * - Accepts file upload via multipart form field `audio` OR JSON { audioUrl: 'https://...' }
@@ -294,12 +337,19 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
 
 
     //INTEGRATE DB HERE WITH USERID
+    if (userId) {
+      // Save the responsePayload to the database with the userId
+      await saveTranscriptionResult(userId, responsePayload);
+    }
+
     return res.json(responsePayload);
   } catch (err) {
     console.error('Error in /transcribe', err?.response?.data || err);
     return res.status(500).json({ error: err?.message || 'internal error', details: err?.response?.data || null });
   }
 });
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
