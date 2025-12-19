@@ -235,7 +235,13 @@ async function saveTranscriptionResult(userId, data) {
   const { data: dbData, error } = await supabase
     .from('summaries')
     .insert([
-      { user_id: userId, result: data }
+      { user_id: userId, 
+        title: data.metadata?.title || 'Untitled', 
+        content: data.chunks ? JSON.stringify(data.chunks) : null,
+        final_summary: data.final_summary ? JSON.stringify(data.final_summary) : null,
+        transcript: data.raw_deepgram_response ? JSON.stringify(data.raw_deepgram_response.results.channels[0].alternatives[0].transcript) : null,
+        created_at: new Date()
+      }
     ]);
 
   if (error) {
