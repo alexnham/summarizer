@@ -243,12 +243,28 @@ async function saveTranscriptionResult(userId, data) {
   }
 };
 
+app.get('/getTranscription/:id', async (req, res) => {
+  const transcriptionId = req.params.id;
+
+  // Fetch transcription from database
+  const { data: dbData, error } = await supabase
+    .from('transcriptions')
+    .select('*')
+    .eq('id', transcriptionId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching transcription:', error);
+    res.status(500).json({ error: 'Error fetching transcription' });
+  } else {
+    res.json(dbData);
+  }
+});
 
 app.get('/getTranscriptions/:userId', async (req, res) => {
   const userId = req.params.userId;
 
-
-
+  // Fetch transcriptions for user from database
   const { data: dbData, error } = await supabase
     .from('transcriptions')
     .select('*')

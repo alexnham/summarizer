@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { AsyncPipe, CommonModule } from '@angular/common'; // Import AsyncPipe and/or CommonModule
 import { RouterOutlet } from '@angular/router';
 import { FileInput } from './components/file-input/file-input';
-import { LoginComponent } from './components/login/login';
+import { LoginComponent } from './components/app-login/app-login';
 import { AuthService } from './services/auth.service';
 // async import
 
