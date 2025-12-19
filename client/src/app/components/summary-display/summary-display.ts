@@ -1,6 +1,5 @@
 import { Component, signal } from "@angular/core";
 import { SummarizerService } from "../../services/summarizer.service";
-import { Observable } from "rxjs";
 import { Summary } from "../../models/summary.model";
 import { AuthService } from "../../services/auth.service";
 import { AsyncPipe } from "@angular/common";
