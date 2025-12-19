@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-
+import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-file-input',
   imports: [],
@@ -8,4 +8,10 @@ import { Component, input } from '@angular/core';
 })
 export class FileInput {
   message = input<string>('');
+  constructor(private authService: AuthService) {}
+
+  test = () => {
+    return this.authService.getCurrentUserId();
+  }
+
 }
