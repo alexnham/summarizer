@@ -6,7 +6,7 @@ export interface Summary {
     userId: number;
     title: string;
     content: string;
-    metadata: Metadata;
+    metadata: Metadata | null;
     chunks : Chunk[];
     final_summary: string;
     transcript: string;

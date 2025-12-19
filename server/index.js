@@ -21,8 +21,8 @@ const FormData = require('form-data');
 const { Deepgram } = require('@deepgram/sdk');
 const { OpenAI } = require('openai');
 const { createClient } = require('@supabase/supabase-js');
+const cors = require('cors');
 const app = express();
-
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Use service role key for server-side
@@ -30,6 +30,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 
 app.use(express.json());
+app.use(cors());
+
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -231,7 +233,7 @@ async function saveTranscriptionResult(userId, data) {
 
 
   const { data: dbData, error } = await supabase
-    .from('transcriptions')
+    .from('summaries')
     .insert([
       { user_id: userId, result: data }
     ]);
@@ -243,7 +245,7 @@ async function saveTranscriptionResult(userId, data) {
   }
 };
 
-app.get('/getTranscription/:id', async (req, res) => {
+app.get('api/getTranscription/:id', async (req, res) => {
   const transcriptionId = req.params.id;
 
   // Fetch transcription from database
@@ -261,7 +263,7 @@ app.get('/getTranscription/:id', async (req, res) => {
   }
 });
 
-app.get('/getTranscriptions/:userId', async (req, res) => {
+app.get('api/getTranscriptions/:userId', async (req, res) => {
   const userId = req.params.userId;
 
   // Fetch transcriptions for user from database
@@ -282,7 +284,7 @@ app.get('/getTranscriptions/:userId', async (req, res) => {
  * Endpoint: transcribe
  * - Accepts file upload via multipart form field `audio` OR JSON { audioUrl: 'https://...' }
  */
-app.post('/transcribe', upload.single('audio'), async (req, res) => {
+app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
   try {
     const audioUrl = req.body.audioUrl || null;
     const userId = req.body.userId || null; // for future DB integration
@@ -357,7 +359,7 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
       // Save the responsePayload to the database with the userId
       await saveTranscriptionResult(userId, responsePayload);
     }
-
+    console.log("responsePayload", responsePayload);
     return res.json(responsePayload);
   } catch (err) {
     console.error('Error in /transcribe', err?.response?.data || err);
