@@ -1,7 +1,9 @@
 <div>
+    <p>hello {{ (currentUser$ | async)?.email }}</p>
+    <button (click)="logout()">Logout</button>
   <ul>
     @for (item of summaries(); track $index) {
-        <nav-bar-button [text]="item.title"></nav-bar-button>
+        <nav-bar-button [text]="item.title" [id]="item.id"></nav-bar-button>
     }
   </ul>
 

@@ -69,7 +69,7 @@ export class SummaryDisplay {
    
 
     getSummary(id: string) {
-        this.summarizerService.getSummary(id).subscribe(summary => {
+        this.summarizerService.getSummary(id).then(summary => {
             this.output.set(summary);
         });
     }

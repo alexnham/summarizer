@@ -3,14 +3,13 @@ import { AuthService } from "../../services/auth.service";
 import { Observable } from "rxjs";
 import { User } from "@supabase/supabase-js";
 import { AsyncPipe } from "@angular/common";
-import { SummaryDisplay } from "../summary-creator/summary-creator";
 import { Router } from "@angular/router";
 import { SummaryNavBar } from "../summary-nav-bar/summary-nav-bar";
 @Component({
   selector: 'app-dashboard',
   templateUrl: './app-dashboard.html',
   styleUrl: './app-dashboard.css',
-  imports: [AsyncPipe, SummaryDisplay, SummaryNavBar],
+  imports: [AsyncPipe, SummaryNavBar],
 })
 export class AppDashboard {
     currentUser$: Observable<User | null>;

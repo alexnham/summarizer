@@ -1,0 +1,37 @@
+<app-summary-nav-bar></app-summary-nav-bar>
+
+@if(summary(); as summary ) {
+<div>
+    <h3>{{ summary.title }}</h3>
+
+   @for (item of content(); track item.start + item.end; let i = $index) {
+    
+    <div class="summary-card">
+      <h3>
+        Segment {{ i + 1 }}
+        <span class="time">({{ item.start }} – {{ item.end }})</span>
+      </h3>
+
+      <p>{{ item.summary }}</p>
+
+      @if (item.key_points?.length) {
+        <h4>Key Points</h4>
+        <ul>
+          @for (point of item.key_points; track point) {
+            <li>{{ point }}</li>
+          }
+        </ul>
+      }
+
+      @if (item.notable_quotes?.length) {
+        <h4>Notable Quotes</h4>
+        @for (quote of item.notable_quotes; track quote) {
+          <blockquote>“{{ quote }}”</blockquote>
+        }
+      }
+    </div>
+  }
+
+    <p class="transcript">{{ summary.transcript }}</p>
+</div>
+}

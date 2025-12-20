@@ -1,0 +1,5 @@
+.transcript {
+  white-space: pre-wrap; /* preserves line breaks and wraps text */
+  line-height: 1.5;
+  font-family: monospace; /* optional, looks nicer for transcripts */
+}

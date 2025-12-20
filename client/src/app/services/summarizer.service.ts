@@ -35,8 +35,9 @@ async summarizeFile(title: string, file: File): Promise<Summary> {
 }
 
   // Get summary by ID
-  getSummary(id: string): Observable<Summary> {
-    return this.http.get<Summary>(`${this.apiUrl}/getTranscription/${id}`);
+  getSummary(id: string | undefined): Promise<Summary> {
+    if (!id) return Promise.resolve(null as any);
+    return firstValueFrom(this.http.get<Summary>(`${this.apiUrl}/getTranscription/${id}`));
   }
 
   // Get all summaries
