@@ -19,9 +19,10 @@ export class SummarizerService {
 
   // Upload file and get summary
 
-async summarizeFile(file: File): Promise<Summary> {
+async summarizeFile(title: string, file: File): Promise<Summary> {
   const formData = new FormData();
   formData.append('audio', file);
+  formData.append('title', title);
 
   const userId = this.authService.getCurrentUserId();
   if (userId) {
@@ -39,8 +40,15 @@ async summarizeFile(file: File): Promise<Summary> {
   }
 
   // Get all summaries
-  getAllSummaries(userID: string): Observable<Summary[]> {
-    return this.http.get<Summary[]>(`${this.apiUrl}/getTranscriptions/${userID}`);
+  getAllSummaries(userID: string): Promise<Summary[]> {
+    return firstValueFrom(this.http.get<Summary[]>(`${this.apiUrl}/getTranscriptions/${userID}`));
+  }
+
+  getAllSummariesTitle(userID: string | null): Promise<Summary[]> {
+    if(!userID) {
+      return Promise.resolve([]);
+    }
+    return firstValueFrom(this.http.get<Summary[]>(`${this.apiUrl}/getTranscriptionsTitle/${userID}`));
   }
 
   // Delete summary

@@ -2,7 +2,7 @@ import { Chunk } from "./chunk.model";
 import { Metadata } from "./metadata.model";
 
 export interface Summary {
-    id: number;
+    id: string;
     userId: number;
     title: string;
     content: string;

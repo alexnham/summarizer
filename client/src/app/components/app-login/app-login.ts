@@ -25,9 +25,6 @@ export class LoginComponent {
     await this.authService.signInWithGoogle();
   }
 
-  async signInWithGithub() {
-    await this.authService.signInWithGithub();
-  }
 
   async signOut() {
     await this.authService.signOut();

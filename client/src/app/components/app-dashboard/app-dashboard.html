@@ -1,7 +1,7 @@
 <div>
 
     <p>hello {{ (currentUser$ | async)?.email }}</p>
+    <button (click)="logout()">Logout</button>
+    <app-summary-nav-bar></app-summary-nav-bar>
 
-    <summary-display></summary-display>
-    
 </div>

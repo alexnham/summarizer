@@ -228,7 +228,7 @@ Return only JSON.
   }
 }
 
-async function saveTranscriptionResult(userId, data) {
+async function saveTranscriptionResult(title, userId, data) {
   // Example using Supabase
 
 
@@ -236,9 +236,9 @@ async function saveTranscriptionResult(userId, data) {
     .from('summaries')
     .insert([
       { user_id: userId, 
-        title: data.metadata?.title || 'Untitled', 
+        title: title || 'Untitled', 
         content: data.chunks ? JSON.stringify(data.chunks) : null,
-        final_summary: data.final_summary ? JSON.stringify(data.final_summary) : null,
+        final_summary: data.final_summary ? JSON.stringify(data.final_summary.executive_summary) : null,
         transcript: data.raw_deepgram_response ? JSON.stringify(data.raw_deepgram_response.results.channels[0].alternatives[0].transcript) : null,
         created_at: new Date()
       }
@@ -251,12 +251,12 @@ async function saveTranscriptionResult(userId, data) {
   }
 };
 
-app.get('api/getTranscription/:id', async (req, res) => {
+app.get('/api/getTranscription/:id', async (req, res) => {
   const transcriptionId = req.params.id;
 
   // Fetch transcription from database
   const { data: dbData, error } = await supabase
-    .from('transcriptions')
+    .from('summaries')
     .select('*')
     .eq('id', transcriptionId)
     .single();
@@ -269,12 +269,29 @@ app.get('api/getTranscription/:id', async (req, res) => {
   }
 });
 
-app.get('api/getTranscriptions/:userId', async (req, res) => {
+app.get('/api/getTranscriptionsTitle/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  // Fetch transcription titles for user from database
+  const { data: dbData, error } = await supabase
+    .from('summaries')
+    .select('id, title, created_at')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching transcription titles:', error);
+    res.status(500).json({ error: 'Error fetching transcription titles' });
+  } else {
+    res.json(dbData);
+  }
+});
+
+app.get('/api/getTranscriptions/:userId', async (req, res) => {
   const userId = req.params.userId;
 
   // Fetch transcriptions for user from database
   const { data: dbData, error } = await supabase
-    .from('transcriptions')
+    .from('summaries')
     .select('*')
     .eq('user_id', userId);
 
@@ -294,6 +311,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
   try {
     const audioUrl = req.body.audioUrl || null;
     const userId = req.body.userId || null; // for future DB integration
+    const title = req.body.title || 'Untitled';
     let deepgramResponse = null;
     if (audioUrl) {
       // Let Deepgram fetch the file directly from URL (recommended for large files)
@@ -363,7 +381,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     //INTEGRATE DB HERE WITH USERID
     if (userId) {
       // Save the responsePayload to the database with the userId
-      await saveTranscriptionResult(userId, responsePayload);
+      await saveTranscriptionResult(title, userId, responsePayload);
     }
     console.log("responsePayload", responsePayload);
     return res.json(responsePayload);

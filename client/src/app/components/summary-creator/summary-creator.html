@@ -1,0 +1,21 @@
+<div>
+  <h2>Upload Audio</h2>
+  <form (ngSubmit)="transcribe()">
+    <input type="file" (change)="onFileSelected($event)" />
+    <input type="text" (change)="onTitleChange($event)" name="title" placeholder="Enter title" />
+    <button type="button" (click)="transcribe()" [disabled]="!selectedFile">Upload</button>
+  </form>    
+ 
+
+
+
+  <!-- gonna be a route to a new component-->
+   @if(output(); as summary ) {
+    <div>
+      <h3>{{ summary.title }}</h3>
+      <p>{{ summary.content }}</p>
+      <p>{{ summary.transcript }}</p>
+    </div>
+   }
+  
+</div>

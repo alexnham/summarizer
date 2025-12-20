@@ -42,10 +42,7 @@ export class App implements OnInit {
     }
   }
 
-  async loginWithGithub() {
-    const { data, error } = await this.authService.signInWithGithub();
-    if (error) console.error('Login error:', error.message);
-  }
+
 
   async logout() {
     const { error } = await this.authService.signOut();

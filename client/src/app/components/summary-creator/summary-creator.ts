@@ -8,9 +8,9 @@ import { Metadata } from "../../models/metadata.model";
 
 
 @Component({
-    selector: 'summary-display',
-    templateUrl: './summary-display.html',
-    styleUrl: './summary-display.css',
+    selector: 'summary-creator',
+    templateUrl: './summary-creator.html',
+    styleUrl: './summary-creator.css',
     imports: [AsyncPipe]
 })
 
@@ -19,6 +19,7 @@ export class SummaryDisplay {
     constructor(private summarizerService: SummarizerService, private authService: AuthService) { }
 
     selectedFile: File | null = null;
+    title: string = '';
     output = signal<Summary | null>(null);
 
     onFileSelected(event: Event) {
@@ -28,16 +29,21 @@ export class SummaryDisplay {
         }
     }
 
+    onTitleChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.title = input.value;
+    }
+
     async transcribe() {
         if (!this.selectedFile) return;
 
-        const response: any = await this.summarizerService.summarizeFile(this.selectedFile)
+        const response: any = await this.summarizerService.summarizeFile(this.title, this.selectedFile)
         console.log('response', response);
         
         const tempChunks: Chunk[] = [];
         for (const chunk of response.chunks) {
             tempChunks.push({
-                id: 1,
+                id: chunk.chunk_index,
                 summary: chunk.summary,
                 action_items: chunk.action_items,
                 key_points: chunk.key_points,
@@ -48,8 +54,8 @@ export class SummaryDisplay {
         }
         
         const temp: Summary = {
-                id: 1,
-                userId: 1,
+                id: response.id,
+                userId: response.userId,
                 title: "test",
                 content: "test",
                 metadata: null,
@@ -59,5 +65,12 @@ export class SummaryDisplay {
         }
 
         this.output.set(temp);
+    }
+   
+
+    getSummary(id: string) {
+        this.summarizerService.getSummary(id).subscribe(summary => {
+            this.output.set(summary);
+        });
     }
 }

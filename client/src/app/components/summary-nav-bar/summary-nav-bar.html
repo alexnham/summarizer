@@ -1,1 +1,8 @@
-<p>summary-nav-bar works!</p>
+<div>
+  <ul>
+    @for (item of summaries(); track $index) {
+        <nav-bar-button [text]="item.title"></nav-bar-button>
+    }
+  </ul>
+
+  </div>

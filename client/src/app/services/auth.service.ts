@@ -50,15 +50,6 @@ export class AuthService {
     return { data, error };
   }
 
-  // Sign in with GitHub
-  async signInWithGithub() {
-    const { data, error } = await this.supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: { redirectTo: window.location.origin }
-    });
-    return { data, error };
-  }
-
   // Sign out
   async signOut() {
     const { error } = await this.supabase.auth.signOut();
