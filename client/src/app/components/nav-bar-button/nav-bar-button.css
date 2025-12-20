@@ -1,0 +1,92 @@
+/* Styles for individual nav buttons used inside the summary nav bar */
+:host {
+  display: block;
+}
+
+.nav-btn-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+button.nav-btn {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+button.nav-btn:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+button.nav-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(11, 105, 255, 0.2);
+}
+
+button.nav-btn.active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Delete Button */
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-error, #ef4444);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  opacity: 0;
+}
+
+.nav-btn-wrap:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error, #ef4444);
+}
+
+.delete-btn:focus {
+  outline: none;
+  opacity: 1;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.delete-btn:active {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* Small screen tweak */
+@media (max-width: 700px) {
+  button.nav-btn {
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+  
+  .delete-btn {
+    opacity: 1;
+  }
+}

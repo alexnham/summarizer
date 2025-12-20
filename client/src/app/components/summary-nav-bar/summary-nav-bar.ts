@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Summary } from '../../models/summary.model';
 import { AuthService } from '../../services/auth.service';
 import { SummarizerService } from '../../services/summarizer.service';
@@ -7,6 +7,8 @@ import { Observable } from 'rxjs';
 import { User } from '@supabase/supabase-js';
 import { Router } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
+import { Dialog } from '@angular/cdk/dialog';
+import { SummaryCreator } from '../summary-creator/summary-creator';
 
 @Component({
   selector: 'app-summary-nav-bar',
@@ -18,6 +20,7 @@ export class SummaryNavBar implements OnInit {
 
   summaries = signal<Summary[]>([]);
   currentUser$: Observable<User | null>;
+  private dialog = inject(Dialog);
 
   constructor(
     private authService: AuthService,
@@ -41,4 +44,9 @@ export class SummaryNavBar implements OnInit {
 
     this.summaries.set(allSummaries);
   }
+
+  createNewSummary() {
+    this.dialog.open(SummaryCreator);
+  }
+
 }

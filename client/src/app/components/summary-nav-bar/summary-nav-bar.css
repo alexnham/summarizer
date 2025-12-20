@@ -1,0 +1,115 @@
+/* Styles for the summary navigation bar container and its children */
+.summary-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--nav-width, 280px);
+  height: 100vh;
+  background: var(--color-bg-primary);
+  border-right: 1px solid var(--color-border-light);
+  padding: var(--spacing-5);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-family);
+  z-index: 60;
+  overflow: hidden;
+}
+
+.nav-header {
+  flex-shrink: 0;
+  padding-bottom: var(--spacing-5);
+  border-bottom: 1px solid var(--color-border-light);
+  margin-bottom: var(--spacing-4);
+}
+
+.user-info {
+  margin-bottom: var(--spacing-4);
+}
+
+.user-info p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn.logout {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+}
+
+.btn.logout:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.summary-item {
+  display: block;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .summary-nav {
+    position: static;
+    width: 100%;
+    height: auto;
+    max-height: 50vh;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+}
+
+/* Ensure the rest of the app content won't be hidden under the fixed nav.
+   If you have a main content wrapper, add a left padding/margin equal to nav width.
+   Example (in a global stylesheet):
+   .main-content { margin-left: 280px; }
+*/

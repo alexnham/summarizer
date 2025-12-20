@@ -46,7 +46,49 @@ function secondsToHMS(s) {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = Math.floor(s % 60);
-  return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Group consecutive words by speaker and format with speaker labels.
+ * Instead of "[Speaker 0] word [Speaker 0] word", produces "[Speaker 0] word word word"
+ */
+function formatWithSpeakerLabels(parts) {
+  if (!parts || parts.length === 0) return '';
+
+  // Check if any word has speaker info
+  const hasSpeakers = parts.some(p => p.speaker !== null && p.speaker !== undefined);
+
+  if (!hasSpeakers) {
+    // No speaker info, just join words
+    return parts.map(p => p.text).join(' ');
+  }
+
+  // Group consecutive words by same speaker
+  const groups = [];
+  let currentGroup = { speaker: parts[0].speaker, words: [parts[0].text] };
+
+  for (let i = 1; i < parts.length; i++) {
+    const part = parts[i];
+    if (part.speaker === currentGroup.speaker) {
+      // Same speaker, add to current group
+      currentGroup.words.push(part.text);
+    } else {
+      // Different speaker, start new group
+      groups.push(currentGroup);
+      currentGroup = { speaker: part.speaker, words: [part.text] };
+    }
+  }
+  // Don't forget the last group
+  groups.push(currentGroup);
+
+  // Format each group with speaker label
+  return groups.map(g => {
+    const speakerLabel = g.speaker !== null && g.speaker !== undefined
+      ? `[Speaker ${g.speaker}]: `
+      : '';
+    return speakerLabel + g.words.join(' ');
+  }).join('\n\n');
 }
 
 /**
@@ -112,14 +154,8 @@ function buildChunksFromDeepgram(result) {
     const chunkEnd = (i + 1) * CHUNK_SECONDS;
     const parts = words.filter(w => w.start >= chunkStart && w.start < chunkEnd);
     if (parts.length > 0) {
-      // join with speaker labels if available
-      const text = parts.map(p => {
-        if (p.speaker !== null && p.speaker !== undefined) {
-          return `[Speaker ${p.speaker}] ${p.text}`;
-        } else {
-          return p.text;
-        }
-      }).join(' ');
+      // Group consecutive words by same speaker, then format with speaker labels
+      const text = formatWithSpeakerLabels(parts);
       chunks.push({
         index: i,
         start: chunkStart,
@@ -235,19 +271,60 @@ async function saveTranscriptionResult(title, userId, data) {
   const { data: dbData, error } = await supabase
     .from('summaries')
     .insert([
-      { user_id: userId, 
-        title: title || 'Untitled', 
+      {
+        user_id: userId,
+        title: title || 'Untitled',
         content: data.chunks ? JSON.stringify(data.chunks) : null,
         final_summary: data.final_summary ? JSON.stringify(data.final_summary.executive_summary) : null,
         transcript: data.raw_deepgram_response ? JSON.stringify(data.raw_deepgram_response.results.channels[0].alternatives[0].transcript) : null,
         created_at: new Date()
       }
-    ]);
+    ])
+    .select()
+    .single();
 
   if (error) {
     console.error('Error saving transcription result:', error);
+    return null;
   } else {
     console.log('Transcription result saved for user:', userId);
+    return dbData;
+  }
+}
+
+async function updateTranscriptionResult(summaryId, data) {
+  const { data: dbData, error } = await supabase
+    .from('summaries')
+    .update({
+      content: data.chunks ? JSON.stringify(data.chunks) : null,
+      final_summary: data.final_summary ? JSON.stringify(data.final_summary.executive_summary) : null,
+      transcript: data.raw_deepgram_response ? JSON.stringify(data.raw_deepgram_response.results.channels[0].alternatives[0].transcript) : null,
+      status: 'completed'
+    })
+    .eq('id', summaryId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating transcription result:', error);
+    return null;
+  } else {
+    console.log('Transcription result updated for summary:', summaryId);
+    return dbData;
+  }
+}
+
+async function markTranscriptionFailed(summaryId, errorMessage) {
+  const { error } = await supabase
+    .from('summaries')
+    .update({
+      status: 'failed',
+      error_message: errorMessage
+    })
+    .eq('id', summaryId);
+
+  if (error) {
+    console.error('Error marking transcription as failed:', error);
   }
 };
 
@@ -303,14 +380,75 @@ app.get('/api/getTranscriptions/:userId', async (req, res) => {
   }
 });
 
+app.delete('/api/deleteTranscription/:id', async (req, res) => {
+  const transcriptionId = req.params.id;
+  console.log('Deleting transcription with ID:', transcriptionId);
+  // Delete transcription from database
+  const { data: dbData, error } = await supabase
+    .from('summaries')
+    .delete()
+    .eq('id', transcriptionId);
+
+  if (error) {
+    console.error('Error deleting transcription:', error);
+    res.status(500).json({ error: 'Error deleting transcription' });
+  } else {
+    res.json({ message: 'Transcription deleted successfully' });
+  }
+});
+
+/**
+ * Endpoint: createPendingSummary
+ * - Creates a placeholder summary with null values and status 'processing'
+ * - Returns the summary ID to be used for updating later
+ */
+app.post('/api/createPendingSummary', async (req, res) => {
+  try {
+    const { title, userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    const { data: dbData, error } = await supabase
+      .from('summaries')
+      .insert([
+        {
+          user_id: userId,
+          title: title || 'Untitled',
+          content: null,
+          final_summary: null,
+          transcript: null,
+          status: 'processing',
+          created_at: new Date()
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating pending summary:', error);
+      return res.status(500).json({ error: 'Failed to create pending summary' });
+    }
+
+    return res.json({ id: dbData.id, status: 'processing' });
+  } catch (err) {
+    console.error('Error in /createPendingSummary', err);
+    return res.status(500).json({ error: err?.message || 'internal error' });
+  }
+});
+
 /**
  * Endpoint: transcribe
  * - Accepts file upload via multipart form field `audio` OR JSON { audioUrl: 'https://...' }
+ * - If summaryId is provided, updates existing record; otherwise creates new one
  */
 app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
+  const summaryId = req.body.summaryId || null;
+  
   try {
     const audioUrl = req.body.audioUrl || null;
-    const userId = req.body.userId || null; // for future DB integration
+    const userId = req.body.userId || null;
     const title = req.body.title || 'Untitled';
     let deepgramResponse = null;
     if (audioUrl) {
@@ -337,7 +475,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
         { punctuate: true, diarize: true }
       );
       // remove uploaded file to save disk
-      fs.unlink(filePath, () => {});
+      fs.unlink(filePath, () => { });
     } else {
       return res.status(400).json({ error: 'Provide audio file or audioUrl' });
     }
@@ -359,6 +497,8 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
       // Add time labels for context
       sum.start = secondsToHMS(chunk.start);
       sum.end = secondsToHMS(chunk.end);
+      // Store the original transcript text for this chunk (for readable display)
+      sum.transcript_text = chunk.text;
       chunkSummaries.push(sum);
       console.log(`Summarized chunk ${chunk.index} (${sum.start} - ${sum.end})`);
     }
@@ -379,13 +519,22 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
 
 
     //INTEGRATE DB HERE WITH USERID
-    if (userId) {
-      // Save the responsePayload to the database with the userId
-      await saveTranscriptionResult(title, userId, responsePayload);
+    let savedData = null;
+    if (summaryId) {
+      // Update existing pending summary
+      savedData = await updateTranscriptionResult(summaryId, responsePayload);
+    } else if (userId) {
+      // Create new summary (legacy flow)
+      savedData = await saveTranscriptionResult(title, userId, responsePayload);
     }
+    
     console.log("responsePayload", responsePayload);
-    return res.json(responsePayload);
+    return res.json({ ...responsePayload, id: savedData?.id || summaryId });
   } catch (err) {
+    // If we have a summaryId, mark it as failed
+    if (summaryId) {
+      await markTranscriptionFailed(summaryId, err?.message || 'Unknown error');
+    }
     console.error('Error in /transcribe', err?.response?.data || err);
     return res.status(500).json({ error: err?.message || 'internal error', details: err?.response?.data || null });
   }

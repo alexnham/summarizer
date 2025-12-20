@@ -1,0 +1,173 @@
+/* Summary Creator Modal Styles */
+.modal {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: var(--spacing-10) var(--spacing-6);
+  min-height: 100%;
+}
+
+.modal-content {
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-8);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: var(--shadow-xl);
+  animation: slideUp var(--transition-slow);
+}
+
+/* Header */
+.modal-header {
+  margin-bottom: var(--spacing-6);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* Form */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+.modal-form label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.modal-input {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(11, 105, 255, 0.1);
+}
+
+.modal-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* File input styling */
+input[type="file"].modal-input {
+  padding: var(--spacing-4);
+  background: var(--color-bg-secondary);
+  border: 2px dashed var(--color-border);
+  cursor: pointer;
+}
+
+input[type="file"].modal-input:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+/* Upload button */
+.modal-btn {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: white;
+  border: none;
+  padding: var(--spacing-4) var(--spacing-6);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-top: var(--spacing-2);
+}
+
+.modal-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.modal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Status Banner */
+.status-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-5);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.status-banner.status-creating,
+.status-banner.status-transcribing {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid rgba(11, 105, 255, 0.2);
+}
+
+.status-banner.status-completed {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-banner.status-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Spinner */
+.status-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Disabled input state */
+.modal-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--color-bg-tertiary);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .modal {
+    padding: var(--spacing-4);
+  }
+
+  .modal-content {
+    padding: var(--spacing-5);
+  }
+}

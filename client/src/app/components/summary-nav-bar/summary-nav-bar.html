@@ -1,10 +1,26 @@
-<div>
-    <p>hello {{ (currentUser$ | async)?.email }}</p>
-    <button (click)="logout()">Logout</button>
-  <ul>
-    @for (item of summaries(); track $index) {
-        <nav-bar-button [text]="item.title" [id]="item.id"></nav-bar-button>
-    }
-  </ul>
+<div class="summary-nav">
+    <div class="nav-header">
+        <div class="user-info">
+            <p>hello {{ (currentUser$ | async)?.email }}</p>
+        </div>
 
-  </div>
+        <div class="nav-actions">
+            <button class="btn logout" (click)="logout()">Logout</button>
+            <button class="btn primary" (click)="createNewSummary()">New Summary</button>
+        </div>
+    </div>
+    @if(summaries().length === 0) {
+    <p class="no-summaries-text">No summaries available. Click "New Summary" to get started.</p>
+    }
+    @else {
+    <ul class="summary-list">
+
+        @for (item of summaries(); track $index) {
+        <li class="summary-item">
+            <nav-bar-button [text]="item.title" [id]="item.id"></nav-bar-button>
+        </li>
+        }
+
+    </ul>
+    }
+</div>

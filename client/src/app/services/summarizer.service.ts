@@ -17,23 +17,40 @@ export class SummarizerService {
     private authService: AuthService
   ) {}
 
-  // Upload file and get summary
-
-async summarizeFile(title: string, file: File): Promise<Summary> {
-  const formData = new FormData();
-  formData.append('audio', file);
-  formData.append('title', title);
-
-  const userId = this.authService.getCurrentUserId();
-  if (userId) {
-    formData.append('userId', userId);
+  // Create a pending summary with null values
+  async createPendingSummary(title: string): Promise<{ id: string; status: string }> {
+    const userId = this.authService.getCurrentUserId();
+    return await firstValueFrom(
+      this.http.post<{ id: string; status: string }>(`${this.apiUrl}/createPendingSummary`, {
+        title,
+        userId
+      })
+    );
   }
 
-  return await firstValueFrom(
-    this.http.post<Summary>(`${this.apiUrl}/transcribe`, formData)
-  );
-}
+  // Upload file and get summary (updates existing pending summary)
+  async summarizeFile(title: string, file: File, summaryId?: string): Promise<Summary> {
+    const formData = new FormData();
+    formData.append('audio', file);
+    formData.append('title', title);
 
+    const userId = this.authService.getCurrentUserId();
+    if (userId) {
+      formData.append('userId', userId);
+    }
+    
+    if (summaryId) {
+      formData.append('summaryId', summaryId);
+    }
+
+    return await firstValueFrom(
+      this.http.post<Summary>(`${this.apiUrl}/transcribe`, formData)
+    );
+  }
+  deleteTranscription(id: string): Promise<void> {
+    if (!id) return Promise.resolve();
+    return firstValueFrom(this.http.delete<void>(`${this.apiUrl}/deleteTranscription/${id}`));
+  }
   // Get summary by ID
   getSummary(id: string | undefined): Promise<Summary> {
     if (!id) return Promise.resolve(null as any);
@@ -53,7 +70,5 @@ async summarizeFile(title: string, file: File): Promise<Summary> {
   }
 
   // Delete summary
-  deleteSummary(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/summaries/${id}`);
-  }
+
 }

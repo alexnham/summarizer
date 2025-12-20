@@ -10,4 +10,6 @@ export interface Summary {
     chunks : Chunk[];
     final_summary: string;
     transcript: string;
+    status?: 'processing' | 'completed' | 'failed';
+    error_message?: string;
 }

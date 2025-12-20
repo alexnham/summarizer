@@ -1,5 +1,282 @@
+/* Single Summary Page Styles */
+
+/* Main Content Area */
+.summary-content {
+  margin-left: var(--nav-width, 280px);
+  padding: var(--spacing-8) var(--spacing-10);
+  min-height: 100vh;
+  background: var(--color-bg-secondary);
+  max-width: 1200px;
+}
+
+/* Header */
+.summary-header {
+  margin-bottom: var(--spacing-8);
+}
+
+.summary-header h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.summary-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Segments Container */
+.segments-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+  margin-bottom: var(--spacing-8);
+}
+
+/* Segment Card */
+.segment-card {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-fast);
+}
+
+.segment-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.segment-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-5);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.segment-info {
+  flex: 1;
+}
+
+.segment-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.segment-info h3 {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.segment-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+}
+
+.segment-body {
+  padding: var(--spacing-5);
+}
+
+.segment-summary {
+  font-size: var(--font-size-base);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-5) 0;
+}
+
+/* Segment Sections (Key Points, Quotes) */
+.segment-section {
+  margin-top: var(--spacing-5);
+  padding-top: var(--spacing-5);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.segment-section h4 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.segment-section h4 svg {
+  color: var(--color-primary);
+}
+
+/* Key Points List */
+.key-points-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.key-points-list li {
+  position: relative;
+  padding-left: var(--spacing-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.key-points-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+/* Quotes */
+.quotes-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.quote {
+  margin: 0;
+  padding: var(--spacing-4);
+  background: var(--color-bg-tertiary);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* Transcript Section */
+.transcript-section {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.transcript-section h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: var(--spacing-5);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.transcript-section h2 svg {
+  color: var(--color-text-muted);
+}
+
+.transcript-content {
+  padding: var(--spacing-5);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
 .transcript {
-  white-space: pre-wrap; /* preserves line breaks and wraps text */
-  line-height: 1.5;
-  font-family: monospace; /* optional, looks nicer for transcripts */
+  white-space: pre-wrap;
+  line-height: 1.8;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  margin: 0;
+}
+
+/* Transcript Toggle Button */
+.transcript-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.transcript-toggle:hover {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-text-muted);
+  color: var(--color-text-primary);
+}
+
+.transcript-toggle.active {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.transcript-toggle svg {
+  flex-shrink: 0;
+}
+
+/* Segment Transcript */
+.segment-transcript {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-4);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-primary);
+  animation: slideUp var(--transition-base);
+}
+
+.transcript-text {
+  font-size: var(--font-size-sm);
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
+/* Responsive */
+@media (max-width: 700px) {
+  .summary-content {
+    margin-left: 0;
+    padding: var(--spacing-4);
+  }
+
+  .summary-header h1 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .segment-header {
+    padding: var(--spacing-4);
+  }
+
+  .segment-body {
+    padding: var(--spacing-4);
+  }
 }
