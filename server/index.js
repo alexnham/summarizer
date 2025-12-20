@@ -42,6 +42,69 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const CHUNK_MINUTES = parseInt(process.env.CHUNK_MINUTES || '7', 10); // chunk length in minutes
 const CHUNK_SECONDS = CHUNK_MINUTES * 60;
 
+// Default transcription options
+const DEFAULT_TRANSCRIPTION_OPTIONS = {
+  punctuate: true,
+  diarize: false,        // Speaker diarization (multiple speakers)
+  language: 'en',        // Language code (e.g., 'en', 'es', 'fr', 'de', 'ja', 'ko', 'zh')
+  model: 'general',      // Deepgram model
+  smart_format: true,    // Smart formatting
+};
+
+// Supported languages for reference
+const SUPPORTED_LANGUAGES = [
+  'en', 'en-US', 'en-GB', 'en-AU', 'en-IN',  // English variants
+  'es', 'es-ES', 'es-419',                    // Spanish
+  'fr', 'fr-FR', 'fr-CA',                     // French
+  'de',                                        // German
+  'it',                                        // Italian
+  'pt', 'pt-BR', 'pt-PT',                     // Portuguese
+  'nl',                                        // Dutch
+  'ja',                                        // Japanese
+  'ko',                                        // Korean
+  'zh', 'zh-CN', 'zh-TW',                     // Chinese
+  'ru',                                        // Russian
+  'hi',                                        // Hindi
+  'ar',                                        // Arabic
+  'vi',                                        // Vietnamese
+];
+
+/**
+ * Build Deepgram transcription options from request parameters
+ * @param {Object} params - Request parameters
+ * @returns {Object} Deepgram options object
+ */
+function buildDeepgramOptions(params = {}) {
+  const options = { ...DEFAULT_TRANSCRIPTION_OPTIONS };
+  
+  // Enable/disable speaker diarization
+  if (params.diarize !== undefined) {
+    options.diarize = params.diarize === true || params.diarize === 'true';
+  }
+  
+  // Set language
+  if (params.language) {
+    const lang = params.language.toLowerCase();
+    if (SUPPORTED_LANGUAGES.includes(lang)) {
+      options.language = lang;
+    } else {
+      console.warn(`Unsupported language: ${lang}, falling back to 'en'`);
+    }
+  }
+  
+  // Set model (optional)
+  if (params.language == 'vi') {
+    options.model = 'nova-3';
+  }
+  
+  // Enable smart formatting (optional)
+  if (params.smart_format !== undefined) {
+    options.smart_format = params.smart_format === true || params.smart_format === 'true';
+  }
+  
+  return options;
+}
+
 function secondsToHMS(s) {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
@@ -442,6 +505,12 @@ app.post('/api/createPendingSummary', async (req, res) => {
  * Endpoint: transcribe
  * - Accepts file upload via multipart form field `audio` OR JSON { audioUrl: 'https://...' }
  * - If summaryId is provided, updates existing record; otherwise creates new one
+ * 
+ * Optional parameters:
+ * - diarize: boolean - Enable speaker diarization (default: false)
+ * - language: string - Language code (default: 'en'). Supported: en, es, fr, de, it, pt, nl, ja, ko, zh, ru, hi, ar
+ * - model: string - Deepgram model (default: 'general')
+ * - smart_format: boolean - Enable smart formatting (default: true)
  */
 app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
   const summaryId = req.body.summaryId || null;
@@ -450,20 +519,24 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     const audioUrl = req.body.audioUrl || null;
     const userId = req.body.userId || null;
     const title = req.body.title || 'Untitled';
+    
+    // Build Deepgram options from request parameters
+    const deepgramOptions = buildDeepgramOptions({
+      diarize: req.body.diarize,
+      language: req.body.language,
+      model: req.body.model,
+      smart_format: req.body.smart_format,
+    });
+    
+    console.log('Transcription options:', deepgramOptions);
+    
     let deepgramResponse = null;
     if (audioUrl) {
       // Let Deepgram fetch the file directly from URL (recommended for large files)
-      // Using Deepgram SDK: speech.long? We'll use SDK `.transcription.preRecorded` which accepts URL in sources
       console.log('Requesting Deepgram to fetch audio URL:', audioUrl);
       deepgramResponse = await deepgram.transcription.preRecorded(
         { url: audioUrl },
-        {
-          punctuate: true,
-          // diarize true if you want speaker separation (may cost a bit more)
-          diarize: true,
-          // set `model` if you want (e.g. 'general')
-          // language: 'en-US'
-        }
+        deepgramOptions
       );
     } else if (req.file) {
       // File uploaded to local server — stream to Deepgram
@@ -472,7 +545,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
       const fileBuffer = fs.createReadStream(filePath);
       deepgramResponse = await deepgram.transcription.preRecorded(
         { buffer: fileBuffer, mimetype: req.file.mimetype },
-        { punctuate: true, diarize: true }
+        deepgramOptions
       );
       // remove uploaded file to save disk
       fs.unlink(filePath, () => { });
@@ -510,7 +583,14 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
       metadata: {
         duration_seconds: Math.ceil(deepgramResponse?.metadata?.duration || 0),
         chunk_minutes: CHUNK_MINUTES,
-        chunks_count: chunks.length
+        chunks_count: chunks.length,
+        // Include the options used for this transcription
+        transcription_options: {
+          diarize: deepgramOptions.diarize,
+          language: deepgramOptions.language,
+          model: deepgramOptions.model,
+          smart_format: deepgramOptions.smart_format
+        }
       },
       chunks: chunkSummaries,
       final_summary: finalSummary,

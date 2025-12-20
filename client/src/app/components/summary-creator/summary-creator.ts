@@ -1,14 +1,16 @@
 import { Component, signal, output } from "@angular/core";
-import { SummarizerService } from "../../services/summarizer.service";
+import { SummarizerService, SUPPORTED_LANGUAGES, TranscriptionOptions } from "../../services/summarizer.service";
 import { Summary } from "../../models/summary.model";
 import { AuthService } from "../../services/auth.service";
 import { Chunk } from "../../models/chunk.model";
+import { FormsModule } from "@angular/forms";
 
 
 @Component({
     selector: 'summary-creator',
     templateUrl: './summary-creator.html',
-    styleUrl: './summary-creator.css'
+    styleUrl: './summary-creator.css',
+    imports: [FormsModule]
 })
 
 export class SummaryCreator {
@@ -18,6 +20,14 @@ export class SummaryCreator {
     selectedFile: File | null = null;
     title: string = '';
     output = signal<Summary | null>(null);
+    
+    // Transcription options
+    diarize = signal<boolean>(false);
+    selectedLanguage = signal<string>('en');
+    smartFormat = signal<boolean>(true);
+    
+    // Available languages for dropdown
+    languages = SUPPORTED_LANGUAGES;
     
     // Status for UI feedback
     status = signal<'idle' | 'creating' | 'transcribing' | 'completed' | 'error'>('idle');
@@ -39,6 +49,21 @@ export class SummaryCreator {
         this.title = input.value;
     }
 
+    onDiarizeChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.diarize.set(input.checked);
+    }
+
+    onLanguageChange(event: Event) {
+        const select = event.target as HTMLSelectElement;
+        this.selectedLanguage.set(select.value);
+    }
+
+    onSmartFormatChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.smartFormat.set(input.checked);
+    }
+
     async transcribe() {
         if (!this.selectedFile) return;
 
@@ -53,14 +78,21 @@ export class SummaryCreator {
             // Notify parent that a new summary was created (so nav can update)
             this.summaryCreated.emit({ id: pending.id, title: this.title || 'Untitled' });
             
-            // Step 2: Start transcription
+            // Step 2: Start transcription with options
             this.status.set('transcribing');
             this.statusMessage.set('Transcription started... This may take a few minutes.');
+            
+            const options: TranscriptionOptions = {
+                diarize: this.diarize(),
+                language: this.selectedLanguage(),
+                smart_format: this.smartFormat()
+            };
             
             const response: any = await this.summarizerService.summarizeFile(
                 this.title, 
                 this.selectedFile,
-                pending.id
+                pending.id,
+                options
             );
             
             console.log('response', response);
@@ -112,6 +144,10 @@ export class SummaryCreator {
         this.status.set('idle');
         this.statusMessage.set('');
         this.pendingSummaryId.set(null);
+        // Reset options to defaults
+        this.diarize.set(false);
+        this.selectedLanguage.set('en');
+        this.smartFormat.set(true);
     }
 
     getSummary(id: string) {
