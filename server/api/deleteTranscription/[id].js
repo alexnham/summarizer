@@ -1,12 +1,22 @@
-const { supabase, handleCors } = require('./lib/config');
+const { supabase } = require('../lib/config');
+
+// CORS headers
+const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://summarize.alexnham.com';
 
 /**
  * DELETE /api/deleteTranscription/[id]
  * Delete a transcription by ID
  */
 module.exports = async function handler(req, res) {
-  // Handle CORS
-  if (handleCors(req, res)) return;
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   if (req.method !== 'DELETE') {
     return res.status(405).json({ error: 'Method not allowed' });

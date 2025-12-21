@@ -11,6 +11,9 @@
       ]
     }
   ],
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" }
+  ],
   "functions": {
     "api/transcribe.js": {
       "maxDuration": 300
