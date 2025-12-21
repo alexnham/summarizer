@@ -30,7 +30,11 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://summarize.alexnham.com',
+  ]
+}));
 
 
 const upload = multer({ dest: 'uploads/' });
