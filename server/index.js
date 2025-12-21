@@ -40,7 +40,7 @@ app.use(cors({
   ]
 }));
 
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: 'tmp/' });
 
 /**
  * Endpoint: createPendingSummary

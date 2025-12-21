@@ -17,6 +17,7 @@
   ],
   "functions": {
     "api/transcribe.js": {
+      "responseLimit": false,
       "maxDuration": 300
     }
   }
