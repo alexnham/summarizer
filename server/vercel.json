@@ -1,14 +1,13 @@
 {
   "version": 2,
-  "headers": [
+   "routes": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "https://summarize.alexnham.com" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS, DELETE" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" },
-        { "key": "Access-Control-Allow-Credentials", "value": "true" }
-      ]
+      "src": "/(.*)",
+      "dest": "./index.js",
+      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*"
+      }
     }
   ],
   "rewrites": [
