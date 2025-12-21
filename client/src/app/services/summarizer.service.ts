@@ -13,6 +13,13 @@ export interface TranscriptionOptions {
   smart_format?: boolean; // Enable smart formatting
 }
 
+// Blob upload response
+export interface BlobUploadResponse {
+  url: string;
+  pathname: string;
+  contentType: string;
+}
+
 // Available languages for the UI
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -57,48 +64,89 @@ export class SummarizerService {
     );
   }
 
-  // Upload file and get summary (updates existing pending summary)
+  // Upload file to Vercel Blob storage
+  async uploadToBlob(file: File): Promise<BlobUploadResponse> {
+    const response = await fetch(`${this.apiUrl}/upload`, {
+      method: 'POST',
+      headers: {
+        'x-filename': file.name,
+        'content-type': file.type || 'audio/mpeg',
+      },
+      body: file, // Send file as raw body
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Upload failed');
+    }
+
+    return response.json();
+  }
+
+  // Delete blob after transcription is complete
+  async deleteBlob(blobUrl: string): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post(`${this.apiUrl}/deleteBlob`, { url: blobUrl })
+      );
+    } catch (err) {
+      console.warn('Failed to delete blob:', err);
+      // Don't throw - blob cleanup is not critical
+    }
+  }
+
+  // Upload file and get summary using Vercel Blob (new flow)
   async summarizeFile(
     title: string, 
     file: File, 
     summaryId?: string,
     options?: TranscriptionOptions
   ): Promise<Summary> {
-    const formData = new FormData();
-    formData.append('audio', file);
-    formData.append('title', title);
+    // Step 1: Upload file to Vercel Blob
+    console.log('Uploading file to Vercel Blob...');
+    const blob = await this.uploadToBlob(file);
+    console.log('File uploaded to blob:', blob.url);
 
-    const userId = this.authService.getCurrentUserId();
-    if (userId) {
-      formData.append('userId', userId);
-    }
-    
-    if (summaryId) {
-      formData.append('summaryId', summaryId);
-    }
+    try {
+      // Step 2: Call transcribe API with blob URL
+      const userId = this.authService.getCurrentUserId();
+      
+      const body: any = {
+        audioUrl: blob.url,
+        title,
+        userId,
+        summaryId,
+      };
 
-    // Add transcription options
-    if (options?.diarize !== undefined) {
-      formData.append('diarize', String(options.diarize));
-    }
-    if (options?.language) {
-      formData.append('language', options.language);
-    }
+      // Add transcription options
+      if (options?.diarize !== undefined) {
+        body.diarize = options.diarize;
+      }
+      if (options?.language) {
+        body.language = options.language;
+      }
+      if (options?.model) {
+        body.model = options.model;
+      }
+      if (options?.smart_format !== undefined) {
+        body.smart_format = options.smart_format;
+      }
 
-    /*
+      console.log('Starting transcription with options:', body);
+      
+      const result = await firstValueFrom(
+        this.http.post<Summary>(`${this.apiUrl}/transcribe`, body)
+      );
 
-    if (options?.model) {
-      formData.append('model', options.model);
-    }
-      */
+      // Step 3: Clean up blob after successful transcription
+      await this.deleteBlob(blob.url);
 
-    if (options?.smart_format !== undefined) {
-      formData.append('smart_format', String(options.smart_format));
+      return result;
+    } catch (err) {
+      // Try to clean up blob even on error
+      await this.deleteBlob(blob.url);
+      throw err;
     }
-    console.log('formData', formData.get('nova-3'), formData.get('model'));
-    return await firstValueFrom(
-      this.http.post<Summary>(`${this.apiUrl}/transcribe`, formData)
-    );
   }
   
   deleteTranscription(id: string): Promise<void> {
