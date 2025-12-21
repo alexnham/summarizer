@@ -12,9 +12,6 @@
     }
   ],
   "functions": {
-    "api/**/*.js": {
-      "runtime": "@vercel/node@3"
-    },
     "api/transcribe.js": {
       "maxDuration": 300
     }
