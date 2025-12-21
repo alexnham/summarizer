@@ -39,7 +39,7 @@ export const SUPPORTED_LANGUAGES = [
   providedIn: 'root'
 })
 export class SummarizerService {
-  private apiUrl = 'https://summarizer-dey4-8b8gsucop-alexnhams-projects.vercel.app/api';
+  private apiUrl = 'https://summarizer-dey4.vercel.app/api';
 
   constructor(
     private http: HttpClient,
