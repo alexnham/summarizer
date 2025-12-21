@@ -56,14 +56,15 @@ const corsHeaders = {
  * Handle CORS preflight requests
  */
 function handleCors(req, res) {
-  if (req.method === 'OPTIONS') {
-    res.status(200).set(corsHeaders).end();
-    return true;
-  }
   // Set CORS headers for all responses
   Object.entries(corsHeaders).forEach(([key, value]) => {
     res.setHeader(key, value);
   });
+  
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return true;
+  }
   return false;
 }
 
