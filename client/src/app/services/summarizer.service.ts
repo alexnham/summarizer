@@ -64,23 +64,68 @@ export class SummarizerService {
     );
   }
 
-  // Upload file to Vercel Blob storage
+  // Upload file to Vercel Blob storage using client-side upload
   async uploadToBlob(file: File): Promise<BlobUploadResponse> {
-    const response = await fetch(`${this.apiUrl}/upload`, {
+    // Step 1: Request a client token from our API
+    const tokenResponse = await fetch(`${this.apiUrl}/upload`, {
       method: 'POST',
       headers: {
-        'x-filename': file.name,
-        'content-type': file.type || 'audio/mpeg',
+        'Content-Type': 'application/json',
       },
-      body: file, // Send file as raw body
+      body: JSON.stringify({
+        type: 'blob.generate-client-token',
+        payload: {
+          pathname: file.name,
+          callbackUrl: `${this.apiUrl}/upload`,
+        },
+      }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Upload failed');
+    if (!tokenResponse.ok) {
+      const error = await tokenResponse.json().catch(() => ({}));
+      throw new Error(error.error || 'Failed to get upload token');
     }
 
-    return response.json();
+    const tokenData = await tokenResponse.json();
+    
+    // Step 2: Upload directly to Vercel Blob using the client token
+    const uploadUrl = tokenData.url;
+    
+    const uploadResponse = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': file.type || 'audio/mpeg',
+      },
+      body: file,
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error('Upload to blob storage failed');
+    }
+
+    const blob = await uploadResponse.json();
+    
+    // Step 3: Notify the callback URL that upload is complete
+    await fetch(`${this.apiUrl}/upload`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'blob.upload-completed',
+        payload: {
+          blob: blob,
+        },
+      }),
+    }).catch(() => {
+      // Callback notification is optional
+    });
+
+    return {
+      url: blob.url,
+      pathname: blob.pathname,
+      contentType: blob.contentType || file.type,
+    };
   }
 
   // Delete blob after transcription is complete

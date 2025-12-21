@@ -30,6 +30,7 @@
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
     "@supabase/supabase-js": "^2.89.0",
+    "@vercel/blob": "^2.0.0",
     "@vitejs/plugin-react": "^4.2.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

@@ -1,23 +1,12 @@
-const { put } = require('@vercel/blob');
+const { handleUpload } = require('@vercel/blob');
 
 // CORS headers
 const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://summarize.alexnham.com';
 
-// Vercel serverless config
-module.exports.config = {
-  api: {
-    bodyParser: false, // Required for handling file streams
-  },
-};
-
 /**
  * POST /api/upload
- * Upload audio file to Vercel Blob storage
- * Returns the blob URL to be used with /api/transcribe
- * 
- * Client should send file as raw body with headers:
- * - x-filename: original filename
- * - content-type: audio mime type
+ * Handle client-side upload to Vercel Blob
+ * This generates a secure upload URL for the client to upload directly to Blob storage
  */
 module.exports = async function handler(req, res) {
   // Set CORS headers
@@ -30,31 +19,41 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
   try {
-    const filename = req.headers['x-filename'] || `audio-${Date.now()}`;
-    const contentType = req.headers['content-type'] || 'audio/mpeg';
-
-    console.log('Uploading file to Vercel Blob:', filename);
-
-    // Upload the request body stream directly to Vercel Blob
-    const blob = await put(filename, req, {
-      access: 'public',
-      contentType: contentType,
+    const response = await handleUpload({
+      body: req.body,
+      request: req,
+      onBeforeGenerateToken: async (pathname) => {
+        // Authenticate and authorize the upload here if needed
+        // You can check user session, validate file type, etc.
+        return {
+          allowedContentTypes: [
+            'audio/mpeg',
+            'audio/mp3',
+            'audio/wav',
+            'audio/wave',
+            'audio/x-wav',
+            'audio/ogg',
+            'audio/webm',
+            'audio/mp4',
+            'audio/m4a',
+            'audio/x-m4a',
+            'video/mp4',
+            'video/webm',
+            'video/quicktime',
+          ],
+          maximumSizeInBytes: 500 * 1024 * 1024, // 500MB max
+        };
+      },
+      onUploadCompleted: async ({ blob }) => {
+        // This runs after upload is complete
+        console.log('Blob upload completed:', blob.url);
+      },
     });
 
-    console.log('File uploaded successfully:', blob.url);
-
-    return res.status(200).json({
-      url: blob.url,
-      pathname: blob.pathname,
-      contentType: blob.contentType,
-    });
+    return res.status(200).json(response);
   } catch (err) {
-    console.error('Error uploading to Vercel Blob:', err);
-    return res.status(500).json({ error: err?.message || 'Upload failed' });
+    console.error('Error in upload handler:', err);
+    return res.status(400).json({ error: err?.message || 'Upload failed' });
   }
 };
