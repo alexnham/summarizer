@@ -4,7 +4,6 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "vercel dev",
     "deploy": "vercel --prod"
   },
   "dependencies": {

@@ -46,7 +46,7 @@ export const SUPPORTED_LANGUAGES = [
   providedIn: 'root'
 })
 export class SummarizerService {
-  private apiUrl = 'https://summarizer-dey4.vercel.app/api';
+  private apiUrl = 'http://localhost:3000/api';
 
   constructor(
     private http: HttpClient,
@@ -64,62 +64,26 @@ export class SummarizerService {
     );
   }
 
-  // Upload file to Vercel Blob storage using client-side upload
+  // Upload file directly to Vercel Blob from the client
   async uploadToBlob(file: File): Promise<BlobUploadResponse> {
-    // Step 1: Request a client token from our API
-    const tokenResponse = await fetch(`${this.apiUrl}/upload`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        type: 'blob.generate-client-token',
-        payload: {
-          pathname: file.name,
-          callbackUrl: `${this.apiUrl}/upload`,
-        },
-      }),
-    });
+    console.log('Uploading file to Vercel Blob:', file.name, file.size, 'bytes');
 
+    // Get the blob token from our API
+    const tokenResponse = await fetch(`${this.apiUrl}/upload`);
     if (!tokenResponse.ok) {
-      const error = await tokenResponse.json().catch(() => ({}));
-      throw new Error(error.error || 'Failed to get upload token');
+      throw new Error('Failed to get upload token');
     }
+    const { token } = await tokenResponse.json();
 
-    const tokenData = await tokenResponse.json();
+    // Upload directly to Vercel Blob
+    const { put } = await import('@vercel/blob');
     
-    // Step 2: Upload directly to Vercel Blob using the client token
-    const uploadUrl = tokenData.url;
-    
-    const uploadResponse = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': file.type || 'audio/mpeg',
-      },
-      body: file,
+    const blob = await put(`audio/${Date.now()}-${file.name}`, file, {
+      access: 'public',
+      token: token,
     });
 
-    if (!uploadResponse.ok) {
-      throw new Error('Upload to blob storage failed');
-    }
-
-    const blob = await uploadResponse.json();
-    
-    // Step 3: Notify the callback URL that upload is complete
-    await fetch(`${this.apiUrl}/upload`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        type: 'blob.upload-completed',
-        payload: {
-          blob: blob,
-        },
-      }),
-    }).catch(() => {
-      // Callback notification is optional
-    });
+    console.log('Upload completed:', blob.url);
 
     return {
       url: blob.url,
@@ -127,6 +91,7 @@ export class SummarizerService {
       contentType: blob.contentType || file.type,
     };
   }
+
 
   // Delete blob after transcription is complete
   async deleteBlob(blobUrl: string): Promise<void> {
